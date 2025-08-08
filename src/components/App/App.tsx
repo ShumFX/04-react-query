@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import ReactPaginate from 'react-paginate';
 import toast, { Toaster } from 'react-hot-toast';
 import { fetchMovies } from '../../services/movieService';
@@ -20,12 +20,14 @@ const App: React.FC = () => {
     data: movieData,
     isLoading,
     isError,
+    isSuccess,
     error,
   } = useQuery({
     queryKey: ['movies', searchQuery, page],
     queryFn: () => fetchMovies(searchQuery, page),
     enabled: !!searchQuery,
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 
   const handleSearch = (query: string) => {
@@ -58,10 +60,10 @@ const App: React.FC = () => {
 
   // Показываем сообщение если нет результатов но поиск был выполнен
   React.useEffect(() => {
-    if (!isLoading && searchQuery && movies.length === 0 && !isError) {
+    if (isSuccess && searchQuery && movies.length === 0) {
       toast.error('No movies found for your request.');
     }
-  }, [isLoading, searchQuery, movies.length, isError]);
+  }, [isSuccess, searchQuery, movies.length]);
 
   return (
     <div className={styles.app}>
