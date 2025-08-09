@@ -35,14 +35,15 @@ const MovieModal: React.FC<MovieModalProps> = ({ movie, onClose }) => {
     }
   };
 
-  const modalRoot = document.getElementById('modal-root');
-  
+  // Пытаемся найти modal-root, если не найден - создаем
+  let modalRoot = document.getElementById('modal-root');
   if (!modalRoot) {
-    console.error('Modal root element not found');
-    return null;
+    modalRoot = document.createElement('div');
+    modalRoot.id = 'modal-root';
+    document.body.appendChild(modalRoot);
   }
 
-  return createPortal(
+  const modalContent = (
     <div 
       className={styles.backdrop} 
       role="dialog" 
@@ -58,9 +59,13 @@ const MovieModal: React.FC<MovieModalProps> = ({ movie, onClose }) => {
           &times;
         </button>
         <img
-          src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
+          src={`https://image.tmdb.org/t/p/original${movie.backdrop_path || movie.poster_path}`}
           alt={movie.title}
           className={styles.image}
+          onError={(e) => {
+            // Fallback если изображение не загрузилось
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
         />
         <div className={styles.content}>
           <h2>{movie.title}</h2>
@@ -73,9 +78,10 @@ const MovieModal: React.FC<MovieModalProps> = ({ movie, onClose }) => {
           </p>
         </div>
       </div>
-    </div>,
-    modalRoot
+    </div>
   );
+
+  return createPortal(modalContent, modalRoot);
 };
 
 export default MovieModal;
